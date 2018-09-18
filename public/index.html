@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        var ws = new WebSocket('ws://127.0.0.1:3000');
+
+        ws.addEventListener('onError', _ => console.log(_.detail));
+
+
+
+        ws.onopen = function (event) {
+            console.log('Socket is opened');
+            //ws.send("Here's some text that the server is urgently awaiting!");
+        };
+
+        ws.onmessage = function(message) {
+            if (message.data) {
+                let cmd = JSON.parse(message.data);
+                if (cmd.event) ws.dispatchEvent(new CustomEvent(cmd.event, {detail: cmd.arg}));
+            }
+        };
+
+        async function  assignIp () {
+            let ip = await fetch('http://127.0.0.1:3000/assign/e067b33c4571').then( _ => _.json());
+            debugger;
+            ws.addEventListener('onPing', packet => console.log(packet.detail));
+            ping('127.0.0.1');
+        }
+
+        function ping (ip) {
+            ws.send(JSON.stringify({
+                cmd: 'ping',
+                ip: ip
+            }));
+        }
+
+        function stop (ip) {
+            ws.send(JSON.stringify({
+                cmd: 'stop',
+                ip: ip
+            }));
+        }
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>
