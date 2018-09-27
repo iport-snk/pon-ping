@@ -6,6 +6,10 @@ const telnet = new Telnet();
 const { exec , spawn } = require('child_process');
 const {telnetConn} = require('../env');
 
+let renewInterface = async function (telnet, ip) {
+
+};
+
 let telnetSetIp = async function (ip) {
     let conn = Object.assign({ host: ip.olt }, telnetConn);
 
@@ -21,7 +25,7 @@ let telnetSetIp = async function (ip) {
     if (confirmation.indexOf(ip.ip) === -1) throw( new Error('Can not assign ip. CONTACT ADMINISTRATOR!!!'));
 };
 
-let telnetReleaseIp = async function (olt, intf, ip) {
+let telnetReleaseIp = async function (olt, intf, ip, mac) {
     let conn = Object.assign({ host: olt }, telnetConn);
     
     await telnet.connect(conn);
@@ -31,9 +35,25 @@ let telnetReleaseIp = async function (olt, intf, ip) {
 
     let confirmation = await telnet.exec(`show running-config interface epON 0/${intf}`);
 
+    if (confirmation.indexOf(ip) > -1) {
+        let vlan = confirmation.match(/tag\s+(\d+)\s+priority/);
+        if (vlan) {
+            let fMac = `${mac.substr(0, 4)}.${mac.substr(4, 4)}.${mac.substr(8)}`,
+                sfp = intf.split(':')[0],
+                tag = vlan[1];
+
+            await telnet.exec(`exit`);
+            await telnet.exec(`int ep 0/${sfp}`);
+            await telnet.exec(`no epon bind-onu mac ${fMac}`);
+            await telnet.exec(`exit`);
+            await telnet.exec(`Int ep 0/${intf}`);
+            await telnet.exec(`epon onu port 1 ctc vlan mode tag ${tag} `);
+        }
+    }
+
     await telnet.end();
 
-    if (confirmation.indexOf(ip) > -1) throw new Error('Can not release ip. CONTACT ADMINISTRATOR!!!');
+    //if (confirmation.indexOf(ip) > -1) throw new Error('Can not release ip. CONTACT ADMINISTRATOR!!!');
 };
 
 router.get('/assign/:mac/:olt/:intf', async function(req, res, next) {
@@ -53,9 +73,9 @@ router.get('/check/:mac', async function(req, res, next) {
     ipPool.check(req.params.mac).then( ip => res.json(ip) );
 });
 
-router.get('/release/:olt/:intf/:ip', async function(req, res, next) {
+router.get('/release/:olt/:intf/:ip/:mac', async function(req, res, next) {
     try {
-        await telnetReleaseIp(req.params.olt, req.params.intf, req.params.ip);
+        await telnetReleaseIp(req.params.olt, req.params.intf, req.params.ip, req.params.mac);
         await ipPool.releaseIp( req.params.ip );
 
         res.json({success: true})
