@@ -11,8 +11,8 @@ class AppSocket {
 
                 switch (message.cmd) {
                     case 'ping':
-                        let argv = [ '-t', '-l', message.size, message.ip],
-                            ping = pings[message.ip] = spawn('ping', argv);
+                        //let argv = [ '-t', '-l', message.size, message.ip],
+                        let ping = pings[message.ip] = spawn('ping', [ message.ip ]);
 
                         ping.stdout.on('data', (data) => {
                             // when client connection is closed - user has reloaded the page or smth like that
