@@ -26,7 +26,8 @@ let telnetSetIp = async function (ip) {
 };
 
 let telnetReleaseIp = async function (olt, intf, ip, mac) {
-    let conn = Object.assign({ host: olt }, telnetConn);
+    let releaseMethod = "normal",
+        conn = Object.assign({ host: olt }, telnetConn);
     
     await telnet.connect(conn);
     await telnet.exec(`config`);
@@ -42,6 +43,7 @@ let telnetReleaseIp = async function (olt, intf, ip, mac) {
                 sfp = intf.split(':')[0],
                 tag = vlan[1];
 
+            releaseMethod = "no binding";
             await telnet.exec(`exit`);
             await telnet.exec(`int ep 0/${sfp}`);
             await telnet.exec(`no epon bind-onu mac ${fMac}`);
@@ -53,6 +55,7 @@ let telnetReleaseIp = async function (olt, intf, ip, mac) {
 
     await telnet.end();
 
+    return releaseMethod;
     //if (confirmation.indexOf(ip) > -1) throw new Error('Can not release ip. CONTACT ADMINISTRATOR!!!');
 };
 
@@ -75,10 +78,10 @@ router.get('/check/:mac', async function(req, res, next) {
 
 router.get('/release/:olt/:intf/:ip/:mac', async function(req, res, next) {
     try {
-        await telnetReleaseIp(req.params.olt, req.params.intf, req.params.ip, req.params.mac);
+        let releaseMethod = await telnetReleaseIp(req.params.olt, req.params.intf, req.params.ip, req.params.mac);
         await ipPool.releaseIp( req.params.ip );
 
-        res.json({success: true})
+        res.json({success: true, releaseMethod: releaseMethod});
     } catch (e) {
         res.json({error: e.toString()});
     }
