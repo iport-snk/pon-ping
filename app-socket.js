@@ -14,6 +14,10 @@ class AppSocket {
                         //let argv = [ '-t', '-l', message.size, message.ip],
                         let ping = pings[message.ip] = spawn('ping', [ message.ip, '-s', message.size ]);
 
+                        setTimeout( _ => {
+                            if (pings[message.ip]) pings[message.ip].kill('SIGINT');
+                        }, 20000);
+
                         ping.stdout.on('data', (data) => {
                             // when client connection is closed - user has reloaded the page or smth like that
                             // ws.send is throwing an exception that breaks an app
@@ -28,7 +32,7 @@ class AppSocket {
                         });
                         break;
                     case 'stop':
-                        pings[message.ip].kill('SIGINT');
+                        if (pings[message.ip]) pings[message.ip].kill('SIGINT');
                         break;
                 }
             });
