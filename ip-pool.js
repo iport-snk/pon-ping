@@ -44,7 +44,6 @@ class IpPool {
                 net = settings.net.split('.'),
                 preIp = `${net[0]}.${net[1]}.${net[2]}.`;
 
-            throw( new Error(`There is no IP available in vlan ${settings.vlan}. \n !!! CONTACT ADMINISTRATOR !!!`) );
             if (assigned.length === 0) {
                 settings.ip = preIp + settings.range[0];
             } else {
@@ -58,6 +57,8 @@ class IpPool {
                     }
                 }
             }
+
+            if (!settings.ip) throw( new Error(`There is no IP available in vlan ${settings.vlan}. \n !!! CONTACT ADMINISTRATOR !!!`) );
         }).then( _ => db.query(
             'insert into ip_assigned (vlan, ip, olt, intf, mac) values (?, ?, ?, ?, ?)',
             [settings.vlan, settings.ip, settings.olt, settings.intf, mac]
