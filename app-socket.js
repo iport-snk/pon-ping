@@ -16,6 +16,11 @@ class AppSocket {
 
                         setTimeout( _ => {
                             if (pings[message.ip]) pings[message.ip].kill('SIGINT');
+                            try {
+                                socket.send(JSON.stringify({ event: 'onTimeOut' }));
+                            } catch (e) {
+                                //
+                            }
                         }, 20000);
 
                         ping.stdout.on('data', (data) => {
@@ -27,7 +32,7 @@ class AppSocket {
                                     arg: data.toString()
                                 }));
                             } catch (e) {
-                                pings[message.ip].kill('SIGINT');
+                                if (pings[message.ip]) pings[message.ip].kill('SIGINT');
                             }
                         });
                         break;
