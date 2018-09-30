@@ -12,16 +12,9 @@ class AppSocket {
                 switch (message.cmd) {
                     case 'ping':
                         //let argv = [ '-t', '-l', message.size, message.ip],
-                        let ping = pings[message.ip] = spawn('ping', [ message.ip, '-s', message.size ]);
+                        let ping = spawn('ping', [ message.ip, '-s', message.size ]);
 
-                        setTimeout( _ => {
-                            if (pings[message.ip]) pings[message.ip].kill('SIGINT');
-                            try {
-                                socket.send(JSON.stringify({ event: 'onTimeOut' }));
-                            } catch (e) {
-                                //
-                            }
-                        }, 20000);
+
 
                         ping.stdout.on('data', (data) => {
                             // when client connection is closed - user has reloaded the page or smth like that
@@ -32,12 +25,31 @@ class AppSocket {
                                     arg: data.toString()
                                 }));
                             } catch (e) {
-                                if (pings[message.ip]) pings[message.ip].kill('SIGINT');
+                                if (pings[message.ip]) pings[message.ip].process.kill('SIGINT');
                             }
                         });
+
+                        pings[message.ip] = {
+                            process: ping,
+                            watcher: setTimeout( _ => {
+                                if (pings[message.ip]) {
+                                    pings[message.ip].process.kill('SIGINT');
+                                    delete pings[message.ip];
+                                }
+                                try {
+                                    socket.send(JSON.stringify({ event: 'onTimeOut' }));
+                                } catch (e) {
+                                    //
+                                }
+                            }, 20000)
+                        };
                         break;
                     case 'stop':
-                        if (pings[message.ip]) pings[message.ip].kill('SIGINT');
+                        if (pings[message.ip]) {
+                            pings[message.ip].process.kill('SIGINT');
+                            clearTimeout(pings[message.ip].watcher);
+                            delete pings[message.ip];
+                        }
                         break;
                 }
             });
