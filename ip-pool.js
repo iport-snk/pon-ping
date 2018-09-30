@@ -44,7 +44,7 @@ class IpPool {
                 net = settings.net.split('.'),
                 preIp = `${net[0]}.${net[1]}.${net[2]}.`;
 
-            throw( new Error(`There is no IP available for vlan ${settings.vlan}. !!! CONTACT ADMINISTRATOR !!!`) );
+            throw( new Error(`There is no IP available in vlan ${settings.vlan}. \n !!! CONTACT ADMINISTRATOR !!!`) );
             if (assigned.length === 0) {
                 settings.ip = preIp + settings.range[0];
             } else {
