@@ -1,5 +1,7 @@
 var express = require('express');
 var router = express.Router();
+var request = require('request');
+
 const ipPool = require("../ip-pool");
 const Telnet = require('../libs/telnet');
 const telnet = new Telnet();
@@ -24,6 +26,21 @@ let telnetSetIp = async function (ip) {
 
     if (confirmation.indexOf(ip.ip) === -1) throw( new Error('Can not assign ip. CONTACT ADMINISTRATOR!!!'));
 };
+
+let telnetReadIp = async function (olt, intf) {
+    let conn = Object.assign({ host: olt }, telnetConn);
+
+    await telnet.connect(conn);
+    await telnet.exec(`config`);
+    await telnet.exec(`Int ep 0/${intf}`);
+
+    let out = await telnet.exec(`show running-config interface epON 0/${intf}`);
+
+    await telnet.end();
+
+    return out
+};
+
 
 let telnetReleaseIp = async function (olt, intf, ip, mac) {
     let releaseMethod = "normal",
@@ -74,6 +91,16 @@ router.get('/assign/:mac/:olt/:intf', async function(req, res, next) {
 
 router.get('/check/:mac', async function(req, res, next) {
     ipPool.check(req.params.mac).then( ip => res.json(ip) );
+});
+
+router.get('/read/:olt/:intf', async function(req, res, next) {
+    try {
+        let ip = await telnetReadIp(req.params.olt, req.params.intf);
+
+        res.json({success: true, ip: ip});
+    } catch (e) {
+        res.json({error: e.toString()});
+    }
 });
 
 router.get('/release/:olt/:intf/:ip/:mac', async function(req, res, next) {
