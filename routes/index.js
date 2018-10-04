@@ -33,11 +33,15 @@ let telnetReadIp = async function (olt, intf) {
     await telnet.exec(`config`);
     await telnet.exec(`Int ep 0/${intf}`);
 
-    let out = await telnet.exec(`show running-config interface epON 0/${intf}`);
+    let ip,
+        out = await telnet.exec(`show running-config interface epON 0/${intf}`),
+        parsed = out.match('static(.*)gateway');
+
+    if (parsed && parsed.length > 1) ip = parsed[1].split(" ")[0].trim();
 
     await telnet.end();
 
-    return out
+    return ip;
 };
 
 
