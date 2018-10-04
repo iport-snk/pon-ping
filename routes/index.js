@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var request = require('request');
 
 const ipPool = require("../ip-pool");
 const Telnet = require('../libs/telnet');
