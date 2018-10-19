@@ -3,15 +3,15 @@ module.exports = {
         port: 23,
         shellPrompt: /#$/,
         pageSeparator: '--More--',
-        username: '*****',
-        password: '*****',
+        username: 'admin',
+        password: '1p0rtnet',
         timeout: 5000
     },
     ponDbConf: {
-        host     : '*****',
-        database : '*****',
-        user     : '*****',
-        password : '*****'
+        host     : 'df.fun.co.ua',
+        database : 'poncontrol',
+        user     : 'fin',
+        password : 'mutabor'
     },
     nets: [{
         vlan: 100,
