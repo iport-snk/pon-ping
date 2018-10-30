@@ -3,6 +3,13 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const env = require('./env.js');
+
+const {init} = require('./cdr.js');
+init();
+
+
+
 
 //const WS = require('ws');
 

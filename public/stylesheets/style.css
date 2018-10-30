@@ -1,8 +1,10 @@
 body {
-  padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
-a {
-  color: #00B7FF;
+.zero-padding { padding-top: 0px!important; padding-bottom: 0px!important; }
+.zero-border td { border-top: none!important; }
+a.disabled {
+  pointer-events: none;
+  opacity: 0.4;
 }

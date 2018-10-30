@@ -1,8 +1,18 @@
 const WS = require('ws');
 const {spawn} = require('child_process');
+let ws;
+
 class AppSocket {
+    static broadcast(message) {
+        ws.clients.forEach(function each(client) {
+            if (client.readyState === WS.OPEN) {
+                client.send(message);
+            }
+        });
+    }
+
     static init(server) {
-        let ws = new WS.Server({server});
+        ws = new WS.Server({server});
         let pings = {};
 
         ws.on('connection', function (socket) {
