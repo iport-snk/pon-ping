@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const webpush = require('web-push');
 const bill = require('mysql-promise')('bill');
 const {billDb} = require('../env');
 const rp = require('request-promise');
@@ -12,11 +11,12 @@ bill.configure(billDb);
 
 router.get('/', (req, res, next) => res.json({status: 'success'}) );
 
-router.post('/', function(req, res, next) {
-    res.json({status: 'success'});
+router.post('/', async function (req, res, next) {
+
     let message = req.body;
 
-    db.saveRecord(message);
+    await db.saveRecord(message);
+    res.json({status: 'success'});
 
 });
 
@@ -38,7 +38,11 @@ router.post('/jira', (req, res) => {
             }
         },
         json: true
-    }).then(_ => res.send(_)).catch( err => console.log(err));
+    }).then(
+        _ => res.send(_)
+    ).catch( err => {
+        res.status(err.statusCode).json({error: 'jira unauth response'});
+    });
 });
 
 router.get('/getUserByContract/:contract', async (req, res, next) => {
@@ -52,15 +56,25 @@ router.get('/getUserByContract/:contract', async (req, res, next) => {
 
 } );
 
-router.get('/cdr', (req, res, next) => {
-    res.json(db.cdr.getCollection('calls').chain().find().simplesort('time', {desc: true}).data({removeMeta: true}));
+router.get('/cdr/:filter', (req, res, next) => {
+    let filter = {};
+    if (req.params.filter !== 'all') filter = {contract: req.params.filter};
+    res.json(
+        db.cdr.getCollection('calls').chain().find(filter).simplesort(
+            'receivedTheCall', {desc: true}
+        ).data(
+            {removeMeta: true}
+        ).map(
+            _ => Object.assign(_, {_showDetails: false})
+        ).filter( _ => _.srcNumber)
+    );
 
 });
 
 router.put('/cdr', (req, res, next) => {
     let data = req.body,
         calls = db.cdr.getCollection('calls'),
-        record = calls.by('callId', data.callId);
+        record = calls.by('generalCallID', data.generalCallID);
 
     if (record.$ver >= data.$ver) {
         res.status(500).json({error: 'stale record'});

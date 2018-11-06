@@ -1,0 +1,23 @@
+POST http://localhost:3000/bino
+Content-Type: application/json
+
+{"generalCallID":"829695420", "method":"receivedTheCall", "srcNumber": "0952811773"}
+
+
+###
+
+POST http://localhost:3000/bino
+Content-Type: application/json
+
+{"generalCallID":"829695420", "method":"answeredTheCall", "extNumber": "905"}
+
+
+###
+
+GET http://iport.net.ua/api/bino.php?requestType=getContractByPhone&srcNumber=0952811773
+
+###
+
+GET http://iport.net.ua/api/bino.php?requestType=gettingCallSettings&srcNumber=0952811773d
+
+###
