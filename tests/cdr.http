@@ -21,3 +21,7 @@ GET http://iport.net.ua/api/bino.php?requestType=getContractByPhone&srcNumber=09
 GET http://iport.net.ua/api/bino.php?requestType=gettingCallSettings&srcNumber=0952811773d
 
 ###
+
+GET http://df.fun.co.ua:81/bino/cdr/all
+
+###

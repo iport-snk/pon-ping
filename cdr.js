@@ -1,6 +1,7 @@
 const loki = require('lokijs');
 const wss = require('./app-socket');
 const rp = require('request-promise');
+const path = require('path');
 
 let _clients = [];
 let _cdr;
@@ -41,7 +42,7 @@ module.exports = {
         return _cdr;
     },
     init: function(){
-        _cdr = new loki('db/cdr.json', {
+        _cdr = new loki(path.join(__dirname, 'cdr.json'), {
             autosave: true,
             autoload: true,
             autosaveInterval: 4000,
